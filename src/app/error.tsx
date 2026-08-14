@@ -1,19 +1,13 @@
-"use client";
+'use client';
 
-export default function Error({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+import { Button } from '@/components/ui/Button';
+
+export default function ErrorPage({ reset }: { error: Error; reset: () => void }) {
   return (
-    <main>
-      <h1>Something went wrong</h1>
-      <p>{error.message}</p>
-      <button onClick={reset} type="button">
-        Try again
-      </button>
-    </main>
+    <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
+      <p className="font-medium mb-2">Something went wrong</p>
+      <p className="text-sm text-muted mb-6">Please try again.</p>
+      <Button onClick={reset}>Try Again</Button>
+    </div>
   );
 }

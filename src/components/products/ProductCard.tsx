@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -10,14 +9,16 @@ import { Price } from '@/components/ui/Price';
 import { Button } from '@/components/ui/Button';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
+import { useWishlist } from '@/hooks/useWishlist';
 import type { Product } from '@/lib/types';
 
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const { user } = useAuth();
   const router = useRouter();
+  const { isWishlisted, toggle } = useWishlist();
   const [isAdding, setIsAdding] = useState(false);
-  const [isWishlisted, setIsWishlisted] = useState(false);
+  const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stockQuantity === 0;
 
   async function handleAddToCart(e: React.MouseEvent) {
@@ -54,12 +55,12 @@ export function ProductCard({ product }: { product: Product }) {
         <button
           onClick={(e) => {
             e.preventDefault();
-            setIsWishlisted((w) => !w);
+            toggle(product.id);
           }}
-          aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           className="absolute top-2 right-2 p-1.5 rounded-full bg-white/90 hover:bg-white"
         >
-          <Heart className={`h-4 w-4 ${isWishlisted ? 'fill-brand text-brand' : 'text-ink'}`} />
+          <Heart className={`h-4 w-4 ${wishlisted ? 'fill-brand text-brand' : 'text-ink'}`} />
         </button>
 
         {outOfStock && (

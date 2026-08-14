@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -40,14 +39,15 @@ export function Header() {
           </nav>
 
           <div className="hidden md:flex items-center flex-1 max-w-sm">
-            <div className="relative w-full">
+            <form action="/search" className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
               <input
+                name="q"
                 type="search"
                 placeholder="Search products..."
                 className="w-full rounded border border-border bg-white/60 py-2 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
               />
-            </div>
+            </form>
           </div>
 
           <div className="flex items-center gap-1">

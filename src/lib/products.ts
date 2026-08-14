@@ -49,11 +49,11 @@ const FALLBACK_PRODUCTS: Product[] = [
   },
 ];
 
-function fallbackProducts(params: { category?: string; search?: string; page?: number; limit?: number }) {
+function fallbackProducts(params: { category?: string; search?: string; sort?: string; page?: number; limit?: number }) {
   const page = params.page ?? 1;
   const limit = params.limit ?? 20;
   const search = params.search?.toLowerCase();
-  const filtered = FALLBACK_PRODUCTS.filter((product) => {
+  let filtered = FALLBACK_PRODUCTS.filter((product) => {
     const matchesCategory = !params.category || product.category === params.category;
     const matchesSearch =
       !search ||
@@ -63,6 +63,15 @@ function fallbackProducts(params: { category?: string; search?: string; page?: n
 
     return matchesCategory && matchesSearch;
   });
+
+  if (params.sort === 'price_asc') {
+    filtered = [...filtered].sort((a, b) => a.price - b.price);
+  } else if (params.sort === 'price_desc') {
+    filtered = [...filtered].sort((a, b) => b.price - a.price);
+  } else if (params.sort === 'newest') {
+    filtered = [...filtered].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
   const start = (page - 1) * limit;
   const items = filtered.slice(start, start + limit);
 
@@ -84,10 +93,11 @@ function fallbackCategories() {
   return Array.from(counts, ([category, count]) => ({ category, count }));
 }
 
-export async function getProducts(params: { category?: string; search?: string; page?: number; limit?: number } = {}) {
+export async function getProducts(params: { category?: string; search?: string; sort?: string; page?: number; limit?: number } = {}) {
   const query = new URLSearchParams();
   if (params.category) query.set('category', params.category);
   if (params.search) query.set('search', params.search);
+  if (params.sort) query.set('sort', params.sort);
   query.set('page', String(params.page ?? 1));
   query.set('limit', String(params.limit ?? 20));
 
