@@ -37,14 +37,41 @@ export default function RegisterPage() {
       await register({ name: form.name, email: form.email, phone: form.phone, password: form.password });
       router.push('/');
     } catch (err) {
-      if (err instanceof ApiError && err.details) {
+      if (err instanceof ApiError) {
         const fieldErrors: Record<string, string> = {};
-        Object.entries(err.details as Record<string, string[]>).forEach(([k, v]) => {
-          fieldErrors[k] = v[0];
-        });
+
+        if (err.fields && typeof err.fields === 'object') {
+          Object.entries(err.fields).forEach(([k, v]) => {
+            fieldErrors[k] = Array.isArray(v) ? String(v[0]) : String(v);
+          });
+        }
+
+        if (err.details && typeof err.details === 'object' && !err.fields) {
+          Object.entries(err.details as Record<string, unknown>).forEach(([k, v]) => {
+            if (Array.isArray(v)) {
+              fieldErrors[k] = String(v[0]);
+            } else if (typeof v === 'string') {
+              fieldErrors[k] = v;
+            }
+          });
+        }
+
+        const msgLower = err.message.toLowerCase();
+        if (msgLower.includes('phone') && !fieldErrors.phone) {
+          fieldErrors.phone = err.message;
+        } else if (msgLower.includes('email') && !fieldErrors.email) {
+          fieldErrors.email = err.message;
+        } else if (msgLower.includes('password') && !fieldErrors.password) {
+          fieldErrors.password = err.message;
+        }
+
+        if (Object.keys(fieldErrors).length === 0) {
+          fieldErrors.form = err.message;
+        }
+
         setErrors(fieldErrors);
       } else {
-        setErrors({ form: err instanceof ApiError ? err.message : 'Something went wrong' });
+        setErrors({ form: err instanceof Error ? err.message : 'Something went wrong' });
       }
     } finally {
       setIsLoading(false);
