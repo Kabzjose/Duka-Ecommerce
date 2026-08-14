@@ -5,16 +5,7 @@ import { ProductGrid } from '@/components/products/ProductGrid';
 import { ProductGridSkeleton } from '@/components/products/ProductCardSkeleton';
 import { Button } from '@/components/ui/Button';
 import { ArrowRight } from 'lucide-react';
-
-const CATEGORY_IMAGE_QUERIES: Record<string, string> = {
-  Electronics: 'electronics gadgets flatlay',
-  Accessories: 'phone accessories flatlay',
-  Stationery: 'notebook stationery desk',
-  Fashion: 'clothing rack fashion',
-  'Home & Living': 'home decor items',
-  Beauty: 'skincare beauty products',
-  Sports: 'sports equipment gear',
-};
+import { NewsletterForm } from '@/components/home/NewsLetterForm';
 
 async function FeaturedProducts() {
   const { items } = await getProducts({ limit: 8 });
@@ -83,19 +74,12 @@ export default function HomePage() {
       </section>
 
       {/* Newsletter */}
+
       <section className="py-10 border-t border-border">
         <div className="max-w-md">
           <h2 className="text-lg font-medium mb-1">Stay updated</h2>
           <p className="text-sm text-muted mb-4">Get notified about new arrivals and deals.</p>
-          <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              required
-              className="flex-1 rounded border border-border bg-white/60 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
-            />
-            <Button type="submit">Subscribe</Button>
-          </form>
+          <NewsletterForm />
         </div>
       </section>
     </div>

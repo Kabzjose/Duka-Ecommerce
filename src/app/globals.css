@@ -1,3 +1,28 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #faf9f5;
+  --color-ink: #15140f;
+  --color-brand: #1b5e43;
+  --color-brand-dark: #134a35;
+  --color-brand-light: #eaf3ee;
+  --color-accent: #c8791a;
+  --color-accent-light: #fbf0df;
+  --color-border: #e4e1d6;
+  --color-danger: #b3261e;
+  --color-muted: #6b6a62;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-inter-tight), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+
+  --radius-DEFAULT: 4px;
+  --radius-lg: 8px;
+  --shadow-card: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+}
+
+:root {
+  --font-inter: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-inter-tight: Inter, ui-sans-serif, system-ui, sans-serif;
+  --font-plex-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+}

@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { Heart } from 'lucide-react';
 import { useState } from 'react';
 import { Price } from '@/components/ui/Price';
@@ -14,6 +15,7 @@ import type { Product } from '@/lib/types';
 export function ProductCard({ product }: { product: Product }) {
   const { addItem } = useCart();
   const { user } = useAuth();
+  const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const outOfStock = product.stockQuantity === 0;
@@ -21,7 +23,7 @@ export function ProductCard({ product }: { product: Product }) {
   async function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     if (!user) {
-      window.location.href = '/login';
+      router.push('/login');
       return;
     }
     setIsAdding(true);

@@ -51,7 +51,7 @@ export function Footer() {
           ))}
         </div>
         <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row justify-between gap-4 text-xs text-muted">
-          <span>© {new Date().getFullYear()} Duka. All rights reserved.</span>
+          <span>Duka. All rights reserved.</span>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-ink">Privacy</Link>
             <Link href="/terms" className="hover:text-ink">Terms</Link>

@@ -1,4 +1,6 @@
 
+"use client";
+
 import { forwardRef } from 'react';
 import type { ButtonHTMLAttributes } from 'react';
 
