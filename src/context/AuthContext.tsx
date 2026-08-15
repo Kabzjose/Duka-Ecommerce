@@ -27,11 +27,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const res = await api.post<{ accessToken: string }>('/auth/refresh');
         setAccessToken(res.accessToken);
-        // We don't get the user object back from /refresh, so decode minimal info isn't
-        // available client-side — real user profile will be fetched once /auth/me exists.
-        // For now, mark as logged in; pages needing user details refetch as needed.
+        const me = await api.get<{ user: User }>('/auth/me', res.accessToken);
+        setUser(me.user);
       } catch {
         // No valid refresh cookie — user is simply not logged in, not an error to surface
+        setUser(null);
+        setAccessToken(null);
       } finally {
         setIsLoading(false);
       }
