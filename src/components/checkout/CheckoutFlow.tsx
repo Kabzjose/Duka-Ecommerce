@@ -47,9 +47,13 @@ export function CheckoutFlow({ zones }: { zones: ZoneOption[] }) {
 
   async function placeOrder() {
     setError(null);
-    if (paymentMethod === 'MPESA' && !/^\+254\d{9}$/.test(payerPhone)) {
-      return setError('Enter a valid M-Pesa number, e.g. +254712345678');
-    }
+    // This regex allows: +2547..., 2547..., 07..., +2541..., 2541..., or 01... followed by 8 digits
+    const mpesaRegex = /^(?:\+254|254|0)?(7|1)\d{8}$/;
+
+   if (paymentMethod === 'MPESA' && !mpesaRegex.test(payerPhone)) {
+   return setError('Enter a valid M-Pesa number, e.g. 0712345678 or 0123456789');
+   }
+
     if (paymentMethod === 'CARD' && !payerEmail) {
       return setError('Email is required for card payment');
     }
