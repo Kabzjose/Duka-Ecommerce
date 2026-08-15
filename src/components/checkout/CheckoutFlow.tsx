@@ -137,7 +137,7 @@ export function CheckoutFlow({ zones }: { zones: ZoneOption[] }) {
         {step === 'Shipping' && (
           <div className="flex flex-col gap-4">
             <Input label="Recipient name" value={shipping.recipientName} onChange={(e) => setShipping((s) => ({ ...s, recipientName: e.target.value }))} />
-            <Input label="Recipient phone" placeholder="+254712345678" value={shipping.recipientPhone} onChange={(e) => setShipping((s) => ({ ...s, recipientPhone: e.target.value }))} />
+            <Input label="Recipient phone" placeholder="0712345678" value={shipping.recipientPhone} onChange={(e) => setShipping((s) => ({ ...s, recipientPhone: e.target.value }))} />
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium">Delivery zone</label>
               <select

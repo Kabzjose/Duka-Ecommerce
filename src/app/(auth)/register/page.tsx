@@ -85,7 +85,7 @@ export default function RegisterPage() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <Input label="Full name" required value={form.name} onChange={(e) => update('name', e.target.value)} />
         <Input label="Email" type="email" required value={form.email} onChange={(e) => update('email', e.target.value)} error={errors.email} />
-        <Input label="Phone" placeholder="+254712345678" required value={form.phone} onChange={(e) => update('phone', e.target.value)} error={errors.phone} />
+        <Input label="Phone" placeholder="0712345678" required value={form.phone} onChange={(e) => update('phone', e.target.value)} error={errors.phone} />
         <Input label="Password" type="password" required value={form.password} onChange={(e) => update('password', e.target.value)} error={errors.password} />
         <Input label="Confirm password" type="password" required value={form.confirmPassword} onChange={(e) => update('confirmPassword', e.target.value)} error={errors.confirmPassword} />
         {errors.form && <p className="text-sm text-danger">{errors.form}</p>}
