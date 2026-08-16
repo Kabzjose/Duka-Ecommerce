@@ -27,6 +27,7 @@ async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<
       ...headers,
     },
     credentials: 'include', // sends the httpOnly refresh cookie
+    cache: 'no-store',
   });
 
   const isJson = res.headers.get('content-type')?.includes('application/json');
