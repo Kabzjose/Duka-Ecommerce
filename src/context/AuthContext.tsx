@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '@/lib/api';
 import type { User } from '@/lib/types';
 
@@ -19,20 +19,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const hasAttemptedRefresh = useRef(false); // guards against React Strict Mode double-invoke
 
-  // On first load, try silently refreshing using the httpOnly cookie —
-  // this is what keeps someone logged in across a page refresh or new tab
   useEffect(() => {
+    if (hasAttemptedRefresh.current) return;
+    hasAttemptedRefresh.current = true;
+
     async function tryRefresh() {
       try {
         const res = await api.post<{ accessToken: string }>('/auth/refresh');
         setAccessToken(res.accessToken);
-        const me = await api.get<{ user: User }>('/auth/me', res.accessToken);
-        setUser(me.user);
+        const meRes = await api.get<{ user: User }>('/auth/me', res.accessToken);
+        setUser(meRes.user);
       } catch {
-        // No valid refresh cookie — user is simply not logged in, not an error to surface
-        setUser(null);
-        setAccessToken(null);
+        // not logged in — expected for first-time visitors
       } finally {
         setIsLoading(false);
       }
