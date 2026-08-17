@@ -28,7 +28,7 @@ export function CheckoutFlow({ zones }: { zones: ZoneOption[] }) {
   const { accessToken } = useAuth();
   const { cart, refreshCart } = useCart();
   const router = useRouter();
-
+   const [orderPlaced, setOrderPlaced] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -118,6 +118,7 @@ export function CheckoutFlow({ zones }: { zones: ZoneOption[] }) {
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Checkout failed');
       setIsSubmitting(false);
+      setOrderPlaced(false);
       setMpesaStage('idle');
     }
   }
@@ -275,7 +276,10 @@ export function CheckoutFlow({ zones }: { zones: ZoneOption[] }) {
               <p className="text-sm text-muted py-4">Sending payment request...</p>
             )}
             {paymentMethod === 'MPESA' && mpesaStage === 'waiting' && (
-              <p className="text-sm text-brand py-4">Check your phone and enter your M-Pesa PIN.</p>
+              <div className="py-6 text-center">
+                <p className="text-sm text-brand font-medium mb-1">Check your phone and enter your M-Pesa PIN</p>
+                <p className="text-xs text-muted">We'll confirm automatically once payment completes — this page will redirect you.</p>
+              </div>
             )}
             {paymentMethod === 'CARD' && (
               <Input
