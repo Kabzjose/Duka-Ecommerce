@@ -85,7 +85,13 @@ export default function AdminBookingDetailPage() {
         <p className="mb-1"><span className="text-muted">Recipient:</span> {booking.recipientName} · {booking.recipientPhone}</p>
         <p className="mb-1"><span className="text-muted">Pickup:</span> {booking.pickupAddress}</p>
         <p className="mb-1"><span className="text-muted">Dropoff:</span> {booking.dropoffAddress}</p>
-        <p><span className="text-muted">Price:</span> KES {booking.price.toLocaleString('en-KE')}</p>
+        <p className="mb-1"><span className="text-muted">Delivery Fee:</span> KES {booking.price.toLocaleString('en-KE')}</p>
+        {booking.order && (
+          <>
+            <p className="mb-1"><span className="text-muted">Products Total:</span> KES {booking.order.productsTotal.toLocaleString('en-KE')}</p>
+            <p><span className="text-muted">Order Total:</span> KES {booking.order.totalAmount.toLocaleString('en-KE')}</p>
+          </>
+        )}
       </div>
 
       {error && <p className="text-sm text-danger mb-4">{error}</p>}
