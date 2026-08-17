@@ -10,14 +10,16 @@ interface ShopPageProps {
 }
 
 async function ShopResults({ category, sort, page }: { category?: string; sort?: string; page: number }) {
-  const result = await getProducts({ category, sort, page, limit: 20 });
-  if (result.items.length === 0) {
-    return <p className="text-sm text-muted py-16 text-center">No products match these filters.</p>;
-  }
+  const result = await getProducts({ category, sort, page, limit: 16 });
+
   return (
     <>
       <ProductGrid products={result.items} />
-      <Pagination currentPage={result.page} totalPages={result.totalPages} />
+      {result.totalPages > 1 && (
+        <div className="mt-12 flex justify-center">
+          <Pagination currentPage={result.page} totalPages={result.totalPages} />
+        </div>
+      )}
     </>
   );
 }
@@ -29,10 +31,22 @@ export default async function ShopPage({ searchParams }: ShopPageProps) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="font-display text-2xl font-semibold mb-1">Shop</h1>
-      <p className="text-sm text-muted mb-4">Browse all products</p>
+      {/* Header Banner */}
+      <div className="mb-6">
+        <span className="text-xs font-mono font-bold uppercase tracking-wider text-brand">Catalog</span>
+        <h1 className="font-display text-3xl md:text-4xl font-extrabold tracking-tight text-ink mt-1">
+          Explore Our Collection
+        </h1>
+        <p className="text-sm text-muted mt-1 max-w-lg">
+          Discover verified products from top brands across Kenya with express shipping and secure payment.
+        </p>
+      </div>
+
+      {/* Filter Controls */}
       <ProductFilters categories={categories} />
-      <div className="pt-6">
+
+      {/* Product Results */}
+      <div className="pt-2">
         <Suspense fallback={<ProductGridSkeleton count={12} />}>
           <ShopResults category={params.category} sort={params.sort} page={page} />
         </Suspense>

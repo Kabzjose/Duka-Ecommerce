@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { Price } from '@/components/ui/Price';
-import { Check } from 'lucide-react';
+import { Check, ShieldCheck, CreditCard, PhoneCall, Truck, MapPin } from 'lucide-react';
 import { useFormValidation } from '@/hooks/useFormValidation';
 import {
   checkoutShippingSchema,
@@ -28,7 +28,7 @@ export function CheckoutFlow({ zones }: { zones: ZoneOption[] }) {
   const { accessToken } = useAuth();
   const { cart, refreshCart } = useCart();
   const router = useRouter();
-   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderPlaced, setOrderPlaced] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -149,206 +149,276 @@ export function CheckoutFlow({ zones }: { zones: ZoneOption[] }) {
   }
 
   if (!cart || cart.items.length === 0) {
-    return <p className="text-center text-muted py-16">Your cart is empty.</p>;
+    return (
+      <div className="py-20 text-center border border-border-subtle rounded-2xl bg-surface p-8 max-w-md mx-auto">
+        <p className="text-base font-bold text-ink mb-2">Your cart is empty</p>
+        <p className="text-xs text-muted mb-6">Add products to your cart before proceeding to checkout.</p>
+      </div>
+    );
   }
 
   return (
-    <div className="grid md:grid-cols-3 gap-10">
-      <div className="md:col-span-2">
-        <div className="flex items-center gap-2 mb-8">
+    <div className="grid lg:grid-cols-12 gap-10">
+      <div className="lg:col-span-8 space-y-8">
+        {/* Step Progress Header */}
+        <div className="flex items-center justify-between gap-2 p-4 rounded-xl bg-surface border border-border shadow-subtle">
           {STEPS.map((s, i) => (
             <div key={s} className="flex items-center gap-2 flex-1">
               <div
-                className={`h-7 w-7 rounded-full flex items-center justify-center text-xs font-medium shrink-0 ${
+                className={`h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 transition-all ${
                   i < stepIndex
-                    ? 'bg-brand text-white'
+                    ? 'bg-brand text-white shadow-sm'
                     : i === stepIndex
-                    ? 'border-2 border-brand text-brand'
-                    : 'border border-border text-muted'
+                    ? 'border-2 border-brand bg-brand-light text-brand'
+                    : 'border border-border bg-bg text-muted'
                 }`}
               >
-                {i < stepIndex ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                {i < stepIndex ? <Check className="h-4 w-4 stroke-[3]" /> : i + 1}
               </div>
-              <span className={`text-xs hidden sm:block ${i === stepIndex ? 'font-medium' : 'text-muted'}`}>
+              <span className={`text-xs hidden sm:block ${i === stepIndex ? 'font-bold text-ink' : 'text-muted'}`}>
                 {s}
               </span>
-              {i < STEPS.length - 1 && <div className="flex-1 h-px bg-border" />}
+              {i < STEPS.length - 1 && <div className="flex-1 h-0.5 bg-border-subtle" />}
             </div>
           ))}
         </div>
 
-        {step === 'Shipping' && (
-          <div className="flex flex-col gap-4">
-            <Input
-              label="Recipient name"
-              required
-              value={shippingForm.values.recipientName}
-              onChange={(e) => shippingForm.handleChange('recipientName', e.target.value)}
-              onBlur={() => shippingForm.handleBlur('recipientName')}
-              error={shippingForm.errors.recipientName}
-            />
-            <Input
-              label="Recipient phone"
-              placeholder="0712345678"
-              required
-              value={shippingForm.values.recipientPhone}
-              onChange={(e) => shippingForm.handleChange('recipientPhone', e.target.value)}
-              onBlur={() => shippingForm.handleBlur('recipientPhone')}
-              error={shippingForm.errors.recipientPhone}
-            />
-            <Select
-              label="Delivery zone"
-              required
-              value={shippingForm.values.dropoffZoneId}
-              onChange={(e) => shippingForm.handleChange('dropoffZoneId', e.target.value)}
-              onBlur={() => shippingForm.handleBlur('dropoffZoneId')}
-              error={shippingForm.errors.dropoffZoneId}
-            >
-              <option value="">Select a zone</option>
-              {zones.map((z) => (
-                <option key={z.id} value={z.id}>
-                  {z.name}
-                </option>
-              ))}
-            </Select>
-            <Input
-              label="Delivery address"
-              placeholder="Street, building, apartment (min 5 characters)"
-              required
-              value={shippingForm.values.dropoffAddress}
-              onChange={(e) => shippingForm.handleChange('dropoffAddress', e.target.value)}
-              onBlur={() => shippingForm.handleBlur('dropoffAddress')}
-              error={shippingForm.errors.dropoffAddress}
-            />
-          </div>
-        )}
-
-        {step === 'Delivery' && (
-          <div className="flex flex-col gap-3">
-            <label className="flex items-center justify-between border border-brand bg-brand-light rounded p-4 cursor-pointer">
-              <div>
-                <p className="text-sm font-medium">Standard Delivery</p>
-                <p className="text-xs text-muted">Delivered based on zone pricing</p>
+        {/* Step Content Card */}
+        <div className="rounded-2xl border border-border bg-surface p-6 sm:p-8 shadow-card space-y-6">
+          {step === 'Shipping' && (
+            <div className="space-y-4">
+              <div className="pb-3 border-b border-border-subtle">
+                <h3 className="font-display text-lg font-bold text-ink">Shipping Details</h3>
+                <p className="text-xs text-muted">Who should receive this delivery?</p>
               </div>
-              <input type="radio" checked readOnly />
-            </label>
-            <p className="text-xs text-muted">
-              Express delivery isn&apos;t available yet — all orders use standard zone-based delivery.
-            </p>
-          </div>
-        )}
 
-        {step === 'Payment' && (
-          <div className="flex flex-col gap-4">
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('MPESA')}
-                className={`flex-1 border rounded p-4 text-sm font-medium ${
-                  paymentMethod === 'MPESA' ? 'border-brand bg-brand-light' : 'border-border'
-                }`}
-              >
-                M-Pesa
-              </button>
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('CARD')}
-                className={`flex-1 border rounded p-4 text-sm font-medium ${
-                  paymentMethod === 'CARD' ? 'border-brand bg-brand-light' : 'border-border'
-                }`}
-              >
-                Card
-              </button>
-            </div>
-
-            {paymentMethod === 'MPESA' && mpesaStage === 'idle' && (
               <Input
-                label="M-Pesa phone number"
+                label="Recipient full name"
+                required
+                value={shippingForm.values.recipientName}
+                onChange={(e) => shippingForm.handleChange('recipientName', e.target.value)}
+                onBlur={() => shippingForm.handleBlur('recipientName')}
+                error={shippingForm.errors.recipientName}
+              />
+              <Input
+                label="Recipient phone number"
                 placeholder="0712345678"
                 required
-                value={mpesaForm.values.payerPhone}
-                onChange={(e) => mpesaForm.handleChange('payerPhone', e.target.value)}
-                onBlur={() => mpesaForm.handleBlur('payerPhone')}
-                error={mpesaForm.errors.payerPhone}
+                value={shippingForm.values.recipientPhone}
+                onChange={(e) => shippingForm.handleChange('recipientPhone', e.target.value)}
+                onBlur={() => shippingForm.handleBlur('recipientPhone')}
+                error={shippingForm.errors.recipientPhone}
               />
-            )}
-            {paymentMethod === 'MPESA' && mpesaStage === 'sending' && (
-              <p className="text-sm text-muted py-4">Sending payment request...</p>
-            )}
-            {paymentMethod === 'MPESA' && mpesaStage === 'waiting' && (
-              <div className="py-6 text-center">
-                <p className="text-sm text-brand font-medium mb-1">Check your phone and enter your M-Pesa PIN</p>
-                <p className="text-xs text-muted">We'll confirm automatically once payment completes — this page will redirect you.</p>
-              </div>
-            )}
-            {paymentMethod === 'CARD' && (
-              <Input
-                label="Email for receipt"
-                type="email"
+              <Select
+                label="Delivery Zone"
                 required
-                value={cardForm.values.payerEmail}
-                onChange={(e) => cardForm.handleChange('payerEmail', e.target.value)}
-                onBlur={() => cardForm.handleBlur('payerEmail')}
-                error={cardForm.errors.payerEmail}
+                value={shippingForm.values.dropoffZoneId}
+                onChange={(e) => shippingForm.handleChange('dropoffZoneId', e.target.value)}
+                onBlur={() => shippingForm.handleBlur('dropoffZoneId')}
+                error={shippingForm.errors.dropoffZoneId}
+              >
+                <option value="">Select your location zone</option>
+                {zones.map((z) => (
+                  <option key={z.id} value={z.id}>
+                    {z.name}
+                  </option>
+                ))}
+              </Select>
+              <Input
+                label="Exact Dropoff Address"
+                placeholder="Street name, building, house/apartment number"
+                required
+                value={shippingForm.values.dropoffAddress}
+                onChange={(e) => shippingForm.handleChange('dropoffAddress', e.target.value)}
+                onBlur={() => shippingForm.handleBlur('dropoffAddress')}
+                error={shippingForm.errors.dropoffAddress}
               />
+            </div>
+          )}
+
+          {step === 'Delivery' && (
+            <div className="space-y-4">
+              <div className="pb-3 border-b border-border-subtle">
+                <h3 className="font-display text-lg font-bold text-ink">Delivery Method</h3>
+                <p className="text-xs text-muted">Standard delivery options available for your location</p>
+              </div>
+
+              <div className="p-4 rounded-xl border-2 border-brand bg-brand-light/60 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Truck className="h-5 w-5 text-brand" />
+                  <div>
+                    <p className="text-sm font-bold text-ink">Standard Express Courier</p>
+                    <p className="text-xs text-muted">Calculated automatically based on selected zone</p>
+                  </div>
+                </div>
+                <input type="radio" checked readOnly className="accent-brand h-4 w-4" />
+              </div>
+            </div>
+          )}
+
+          {step === 'Payment' && (
+            <div className="space-y-4">
+              <div className="pb-3 border-b border-border-subtle">
+                <h3 className="font-display text-lg font-bold text-ink">Payment Method</h3>
+                <p className="text-xs text-muted">Select how you wish to complete payment</p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('MPESA')}
+                  className={`p-4 rounded-xl border-2 font-bold text-sm flex flex-col items-center gap-2 transition-all cursor-pointer ${
+                    paymentMethod === 'MPESA'
+                      ? 'border-brand bg-brand-light text-brand-dark shadow-sm'
+                      : 'border-border bg-bg text-muted hover:border-ink/30'
+                  }`}
+                >
+                  <PhoneCall className="h-5 w-5 text-brand" />
+                  <span>M-Pesa STK Push</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('CARD')}
+                  className={`p-4 rounded-xl border-2 font-bold text-sm flex flex-col items-center gap-2 transition-all cursor-pointer ${
+                    paymentMethod === 'CARD'
+                      ? 'border-brand bg-brand-light text-brand-dark shadow-sm'
+                      : 'border-border bg-bg text-muted hover:border-ink/30'
+                  }`}
+                >
+                  <CreditCard className="h-5 w-5 text-brand" />
+                  <span>Card (Visa/Mastercard)</span>
+                </button>
+              </div>
+
+              {paymentMethod === 'MPESA' && mpesaStage === 'idle' && (
+                <div className="pt-2">
+                  <Input
+                    label="M-Pesa Phone Number"
+                    placeholder="0712345678"
+                    required
+                    value={mpesaForm.values.payerPhone}
+                    onChange={(e) => mpesaForm.handleChange('payerPhone', e.target.value)}
+                    onBlur={() => mpesaForm.handleBlur('payerPhone')}
+                    error={mpesaForm.errors.payerPhone}
+                    hint="You will receive an instant M-Pesa STK prompt on this phone."
+                  />
+                </div>
+              )}
+
+              {paymentMethod === 'MPESA' && mpesaStage === 'sending' && (
+                <div className="py-8 text-center text-muted font-mono text-xs">
+                  Initiating M-Pesa STK push prompt...
+                </div>
+              )}
+
+              {paymentMethod === 'MPESA' && mpesaStage === 'waiting' && (
+                <div className="py-8 text-center bg-brand-light rounded-xl p-6 border border-brand/30">
+                  <p className="text-sm font-bold text-brand mb-1">STK Push Sent!</p>
+                  <p className="text-xs text-muted">
+                    Check your phone screen and enter your M-Pesa PIN. We will automatically confirm your order once paid.
+                  </p>
+                </div>
+              )}
+
+              {paymentMethod === 'CARD' && (
+                <div className="pt-2">
+                  <Input
+                    label="Email Address for Receipt"
+                    type="email"
+                    required
+                    value={cardForm.values.payerEmail}
+                    onChange={(e) => cardForm.handleChange('payerEmail', e.target.value)}
+                    onBlur={() => cardForm.handleBlur('payerEmail')}
+                    error={cardForm.errors.payerEmail}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {step === 'Review' && (
+            <div className="space-y-4">
+              <div className="pb-3 border-b border-border-subtle">
+                <h3 className="font-display text-lg font-bold text-ink">Review Order</h3>
+                <p className="text-xs text-muted">Verify shipping & payment details before placing order</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-bg border border-border-subtle space-y-1 text-xs">
+                <p className="font-bold text-ink flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-brand" /> Shipping Address
+                </p>
+                <p className="text-muted">{shippingForm.values.recipientName} • {shippingForm.values.recipientPhone}</p>
+                <p className="text-ink font-mono mt-1">{shippingForm.values.dropoffAddress}</p>
+              </div>
+
+              <div className="p-4 rounded-xl bg-bg border border-border-subtle space-y-1 text-xs">
+                <p className="font-bold text-ink flex items-center gap-1.5">
+                  <CreditCard className="h-3.5 w-3.5 text-brand" /> Payment Details
+                </p>
+                <p className="text-muted">
+                  {paymentMethod === 'MPESA'
+                    ? `M-Pesa STK Push — ${mpesaForm.values.payerPhone}`
+                    : `Card Authorization — ${cardForm.values.payerEmail}`}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <p className="text-xs font-medium text-danger bg-danger-light p-3 rounded-lg border border-danger/20">
+              {error}
+            </p>
+          )}
+
+          <div className="flex gap-3 pt-4 border-t border-border-subtle">
+            {stepIndex > 0 && (
+              <Button variant="secondary" onClick={back} disabled={isSubmitting}>
+                Back
+              </Button>
+            )}
+            {step !== 'Review' ? (
+              <Button onClick={next} className="ml-auto">Continue</Button>
+            ) : (
+              <Button onClick={placeOrder} isLoading={isSubmitting} className="ml-auto bg-brand hover:bg-brand-dark">
+                Place Order Now
+              </Button>
             )}
           </div>
-        )}
-
-        {step === 'Review' && (
-          <div className="flex flex-col gap-4 text-sm">
-            <div className="border border-border rounded p-4">
-              <p className="font-medium mb-1">Shipping to</p>
-              <p className="text-muted">
-                {shippingForm.values.recipientName} · {shippingForm.values.recipientPhone}
-              </p>
-              <p className="text-muted">{shippingForm.values.dropoffAddress}</p>
-            </div>
-            <div className="border border-border rounded p-4">
-              <p className="font-medium mb-1">Payment method</p>
-              <p className="text-muted">
-                {paymentMethod === 'MPESA'
-                  ? `M-Pesa — ${mpesaForm.values.payerPhone}`
-                  : `Card — ${cardForm.values.payerEmail}`}
-              </p>
-            </div>
-          </div>
-        )}
-
-        {error && <p className="text-sm text-danger mt-4">{error}</p>}
-
-        <div className="flex gap-3 mt-8">
-          {stepIndex > 0 && (
-            <Button variant="secondary" onClick={back} disabled={isSubmitting}>
-              Back
-            </Button>
-          )}
-          {step !== 'Review' ? (
-            <Button onClick={next}>Continue</Button>
-          ) : (
-            <Button onClick={placeOrder} isLoading={isSubmitting}>
-              Place Order
-            </Button>
-          )}
         </div>
       </div>
 
-      <div className="border border-border rounded p-5 h-fit">
-        <h2 className="text-sm font-medium mb-4">Order Summary</h2>
-        {cart.items.map((item) => (
-          <div key={item.productId} className="flex justify-between text-sm mb-2">
-            <span className="text-muted truncate pr-2">
-              {item.name} × {item.quantity}
-            </span>
-            <span className="font-mono shrink-0">{item.lineTotal.toLocaleString('en-KE')}</span>
+      {/* Summary Sidebar */}
+      <div className="lg:col-span-4">
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-card sticky top-28 space-y-4">
+          <h3 className="font-display text-base font-bold text-ink pb-3 border-b border-border-subtle">
+            Cart Summary ({cart.items.length})
+          </h3>
+
+          <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
+            {cart.items.map((item) => (
+              <div key={item.productId} className="flex justify-between items-center text-xs">
+                <span className="text-ink line-clamp-1 pr-2">
+                  {item.name} <strong className="text-muted font-mono">× {item.quantity}</strong>
+                </span>
+                <span className="font-mono text-ink font-semibold shrink-0">
+                  KES {item.lineTotal.toLocaleString('en-KE')}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
-        <div className="border-t border-border pt-3 mt-3">
-          <div className="flex justify-between font-medium">
-            <span>Products Total</span>
-            <Price amount={cart.total} size="sm" />
+
+          <div className="pt-4 border-t border-border-subtle space-y-2">
+            <div className="flex justify-between text-xs text-muted">
+              <span>Products Total</span>
+              <Price amount={cart.total} size="xs" />
+            </div>
+            <p className="text-[11px] text-muted">Delivery fee calculated at order placement.</p>
           </div>
-          <p className="text-xs text-muted mt-1">Delivery fee calculated at order placement</p>
+
+          <div className="pt-3 border-t border-border-subtle flex items-center justify-center gap-2 text-xs text-muted">
+            <ShieldCheck className="h-4 w-4 text-brand" />
+            <span>Encrypted Checkout Protocol</span>
+          </div>
         </div>
       </div>
     </div>

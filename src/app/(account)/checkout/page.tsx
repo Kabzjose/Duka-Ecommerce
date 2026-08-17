@@ -15,8 +15,13 @@ async function getZones() {
 export default async function CheckoutPage() {
   const zones = await getZones();
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <h1 className="font-display text-2xl font-semibold mb-8">Checkout</h1>
+    <div className="mx-auto max-w-6xl px-4 py-10">
+      <div className="mb-8">
+        <span className="text-xs font-mono font-bold uppercase tracking-wider text-brand">Secure Portal</span>
+        <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink mt-1">
+          Complete Your Order
+        </h1>
+      </div>
       <CheckoutFlow zones={zones} />
     </div>
   );
