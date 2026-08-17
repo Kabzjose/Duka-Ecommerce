@@ -34,8 +34,12 @@ export default function LoginPage() {
 
     setIsLoading(true);
     try {
-      await login(data.email, data.password);
-      router.push('/');
+      const loggedUser = await login(data.email, data.password);
+      if (loggedUser.role === 'ADMIN') {
+        router.push('/admin');
+      } else {
+        router.push('/');
+      }
     } catch (err) {
       setError('form', err instanceof ApiError ? err.message : 'Something went wrong');
     } finally {

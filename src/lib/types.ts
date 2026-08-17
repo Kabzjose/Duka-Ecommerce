@@ -97,3 +97,40 @@ export interface CategoryCount {
   category: string;
   count: number;
 }
+
+export interface AdminOverview {
+  totalBookings: number;
+  totalRevenue: number;
+  activeRiders: number;
+  bookingsToday: number;
+  bookingsThisWeek: number;
+  deliveredCount: number;
+  cancelledCount: number;
+  bookingsByStatus: { status: string; count: number }[];
+}
+
+export interface RiderPerformance {
+  totalAssigned: number;
+  delivered: number;
+  cancelled: number;
+  cancellationRate: number;
+  avgDeliveryTimeMinutes: number | null;
+}
+
+export interface RiderWithPerformance {
+  id: string;
+  name: string;
+  phone: string;
+  isActive: boolean;
+  performance: RiderPerformance;
+}
+
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: Role;
+  isActive: boolean;
+  createdAt: string;
+}

@@ -4,21 +4,65 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { getOrder } from '@/lib/orders';
+import { api } from '@/lib/api';
 import { OrderTracker } from '@/components/orders/OrderTracker';
 import { Price } from '@/components/ui/Price';
-import type { Order } from '@/lib/types';
+import type { Order, Booking } from '@/lib/types';
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { accessToken } = useAuth();
+  const { accessToken, isLoading: authLoading } = useAuth();
   const [order, setOrder] = useState<Order | null | undefined>(undefined);
+  const [booking, setBooking] = useState<Booking | null>(null);
 
   useEffect(() => {
-    if (id && accessToken) getOrder(id, accessToken).then(setOrder);
+    if (!id || !accessToken) return;
+
+    let cancelled = false;
+
+    async function loadOrderAndBooking() {
+      if(!id || !accessToken){
+        console.error('Missing id or accessToken ');
+        return;
+      };
+      try {
+        const orderData = await getOrder(id, accessToken);
+        if (cancelled) return;
+        setOrder(orderData);
+
+        if (orderData?.bookingId) {
+          try {
+            const bookingRes = await api.get<{ booking: Booking }>(`/bookings/${orderData.bookingId}`, accessToken);
+            if (!cancelled) setBooking(bookingRes.booking);
+          } catch {
+            // booking fetch failing shouldn't block showing the order itself
+          }
+        }
+      } catch {
+        if (!cancelled) setOrder(null);
+      }
+    }
+
+    loadOrderAndBooking();
+    const interval = setInterval(loadOrderAndBooking, 10000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
   }, [id, accessToken]);
 
-  if (order === undefined) return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted">Loading...</div>;
-  if (order === null) return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted">Order not found.</div>;
+  if (authLoading) {
+    return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted">Checking your session...</div>;
+  }
+  if (!accessToken) {
+    return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted">Please log in to view this order.</div>;
+  }
+  if (order === undefined) {
+    return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted">Loading order...</div>;
+  }
+  if (order === null) {
+    return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted">Order not found.</div>;
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -42,8 +86,18 @@ export default function OrderDetailPage() {
           {order.bookingId && (
             <div>
               <h2 className="text-sm font-medium mb-3">Delivery Tracking</h2>
-              <OrderTracker currentStatus="PENDING" />
-              <p className="text-xs text-muted mt-2">Live tracking available once your delivery is picked up.</p>
+              {booking ? (
+                <>
+                  <OrderTracker currentStatus={booking.status} />
+                  {booking.rider && (
+                    <p className="text-xs text-muted mt-2">
+                      Rider: {booking.rider.name} · {booking.rider.phone}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-muted">Loading delivery status...</p>
+              )}
             </div>
           )}
         </div>

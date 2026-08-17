@@ -21,12 +21,12 @@ const CartContext = createContext<CartContextValue | null>(null);
 const EMPTY_CART: Cart = { cartId: '', items: [], total: 0 };
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const { accessToken } = useAuth();
+  const { user, accessToken } = useAuth();
   const [cart, setCart] = useState<Cart | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   const refreshCart = useCallback(async () => {
-    if (!accessToken) {
+    if (!accessToken || (user && user.role !== 'CUSTOMER')) {
       setCart(null);
       return;
     }
@@ -34,10 +34,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     try {
       const res = await api.get<Cart>('/cart', accessToken);
       setCart(res);
+    } catch {
+      setCart(null);
     } finally {
       setIsLoading(false);
     }
-  }, [accessToken]);
+  }, [accessToken, user]);
 
   // Reload the cart whenever login state changes — e.g. right after login, or on logout it clears
   useEffect(() => {

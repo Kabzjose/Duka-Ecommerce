@@ -1,108 +1,57 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
-import { getOrder } from '@/lib/orders';
 import { api } from '@/lib/api';
-import { OrderTracker } from '@/components/orders/OrderTracker';
 import { Price } from '@/components/ui/Price';
-import type { Order, Booking } from '@/lib/types';
+import type { Order, PaginatedResponse } from '@/lib/types';
 
-export default function OrderDetailPage() {
-  const { id } = useParams<{ id: string }>();
+const STATUS_LABELS: Record<string, string> = {
+  AWAITING_PAYMENT: 'Awaiting Payment',
+  PAID: 'Processing',
+  CANCELLED: 'Cancelled',
+};
+
+export default function OrdersPage() {
   const { accessToken } = useAuth();
-  const [order, setOrder] = useState<Order | null | undefined>(undefined);
-  const [booking, setBooking] = useState<Booking | null>(null);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!id || !accessToken) return;
+    if (!accessToken) return;
+    api.get<PaginatedResponse<Order>>('/orders', accessToken)
+      .then((res) => setOrders(res.items))
+      .finally(() => setIsLoading(false));
+  }, [accessToken]);
 
-    let cancelled = false;
+  if (isLoading) return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted">Loading orders...</div>;
 
-    async function loadOrderAndBooking() {
-      if (!id || !accessToken) {
-        console.error("Missing order ID or access token");
-        return;
-      }
-      const orderData = await getOrder(id, accessToken);
-      if (cancelled) return;
-      setOrder(orderData);
-
-      if (orderData?.bookingId) {
-        const bookingRes = await api.get<{ booking: Booking }>(`/bookings/${orderData.bookingId}`, accessToken);
-        if (!cancelled) setBooking(bookingRes.booking);
-      }
-    }
-
-    loadOrderAndBooking();
-
-    // Poll every 10s for status updates while viewing this page — lightweight live tracking
-    const interval = setInterval(loadOrderAndBooking, 10000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-    };
-  }, [id, accessToken]);
-
-  if (order === undefined) return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted">Loading...</div>;
-  if (order === null) return <div className="mx-auto max-w-4xl px-4 py-16 text-center text-muted">Order not found.</div>;
+  if (orders.length === 0) {
+    return (
+      <div className="mx-auto max-w-md px-4 py-20 text-center">
+        <p className="font-medium mb-2">No orders yet</p>
+        <p className="text-sm text-muted">Your order history will show up here.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="font-display text-2xl font-semibold mb-1">Order #{order.id.slice(0, 8).toUpperCase()}</h1>
-      <p className="text-sm text-muted mb-8">Placed {new Date(order.createdAt).toLocaleDateString('en-KE', { dateStyle: 'long' })}</p>
-
-      <div className="grid md:grid-cols-3 gap-8">
-        <div className="md:col-span-2 flex flex-col gap-8">
-          <div>
-            <h2 className="text-sm font-medium mb-3">Items</h2>
-            <div className="divide-y divide-border border-t border-b border-border">
-              {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between py-3 text-sm">
-                  <span>{item.product.name} × {item.quantity}</span>
-                  <span className="font-mono">{(item.unitPrice * item.quantity).toLocaleString('en-KE')}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {order.bookingId && (
+      <h1 className="font-display text-2xl font-semibold mb-6">Order History</h1>
+      <div className="divide-y divide-border border-t border-b border-border">
+        {orders.map((order) => (
+          <Link key={order.id} href={`/orders/${order.id}`} className="flex items-center justify-between py-4 hover:bg-black/[0.02] px-2 -mx-2 rounded">
             <div>
-              <h2 className="text-sm font-medium mb-3">Delivery Tracking</h2>
-              {booking ? (
-                <>
-                  <OrderTracker currentStatus={booking.status} />
-                  {booking.rider && (
-                    <p className="text-xs text-muted mt-2">
-                      Rider: {booking.rider.name} · {booking.rider.phone}
-                    </p>
-                  )}
-                </>
-              ) : (
-                <p className="text-sm text-muted">Loading delivery status...</p>
-              )}
+              <p className="text-sm font-medium">Order #{order.id.slice(0, 8).toUpperCase()}</p>
+              <p className="text-xs text-muted mt-0.5">{new Date(order.createdAt).toLocaleDateString('en-KE', { dateStyle: 'medium' })} · {order.items.length} item{order.items.length !== 1 ? 's' : ''}</p>
             </div>
-          )}
-        </div>
-
-        <div className="border border-border rounded p-5 h-fit">
-          <h2 className="text-sm font-medium mb-4">Summary</h2>
-          <div className="flex justify-between text-sm mb-1">
-            <span className="text-muted">Products</span>
-            <span className="font-mono">{order.productsTotal.toLocaleString('en-KE')}</span>
-          </div>
-          <div className="flex justify-between text-sm mb-3">
-            <span className="text-muted">Delivery</span>
-            <span className="font-mono">{order.deliveryFee.toLocaleString('en-KE')}</span>
-          </div>
-          <div className="border-t border-border pt-3 flex justify-between font-medium">
-            <span>Total</span>
-            <Price amount={order.totalAmount} size="sm" />
-          </div>
-          <p className="text-xs text-muted mt-4">{order.recipientName} · {order.recipientPhone}</p>
-          <p className="text-xs text-muted">{order.dropoffAddress}</p>
-        </div>
+            <div className="flex items-center gap-4">
+              <span className="text-xs px-2 py-1 rounded bg-brand-light text-brand-dark font-medium">{STATUS_LABELS[order.status] ?? order.status}</span>
+              <Price amount={order.totalAmount} size="sm" />
+            </div>
+          </Link>
+        ))}
       </div>
     </div>
   );
