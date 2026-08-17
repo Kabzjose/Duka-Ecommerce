@@ -56,6 +56,7 @@ export interface Order {
   recipientPhone: string;
   dropoffAddress: string;
   bookingId: string | null;
+  booking?: { status: BookingStatus } | null;
   items: OrderItem[];
   createdAt: string;
 }
