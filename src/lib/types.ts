@@ -78,6 +78,7 @@ export interface Booking {
   dropoffAddress: string;
   price: number;
   rider: { id: string; name: string; phone: string } | null;
+  order?: { id: string; totalAmount: number; productsTotal: number } | null;
   createdAt: string;
 }
 

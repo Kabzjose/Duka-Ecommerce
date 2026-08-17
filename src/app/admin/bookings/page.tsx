@@ -54,7 +54,8 @@ export default function AdminBookingsPage() {
                 <th className="px-4 py-2">Recipient</th>
                 <th className="px-4 py-2">Status</th>
                 <th className="px-4 py-2">Rider</th>
-                <th className="px-4 py-2">Price</th>
+                <th className="px-4 py-2">Delivery Fee</th>
+                <th className="px-4 py-2">Order Total</th>
                 <th className="px-4 py-2"></th>
               </tr>
             </thead>
@@ -68,6 +69,9 @@ export default function AdminBookingsPage() {
                   </td>
                   <td className="px-4 py-3 text-muted">{b.rider?.name ?? '—'}</td>
                   <td className="px-4 py-3 font-mono">{b.price.toLocaleString('en-KE')}</td>
+                  <td className="px-4 py-3 font-mono">
+                    {b.order ? b.order.totalAmount.toLocaleString('en-KE') : '—'}
+                  </td>
                   <td className="px-4 py-3">
                     <Link href={`/admin/bookings/${b.id}`} className="text-brand text-xs font-medium hover:underline">
                       Manage

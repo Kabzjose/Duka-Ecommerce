@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Search, User, Heart, ShoppingBag, Menu, Shield } from 'lucide-react';
+import { Search, User, Heart, ShoppingBag, Menu, Shield, Bike } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
@@ -44,6 +44,14 @@ export function Header() {
                 <Shield className="h-4 w-4" /> Admin Panel
               </Link>
             )}
+            {user?.role === 'RIDER' && (
+              <Link
+                href="/rider"
+                className="text-sm font-medium text-brand hover:underline flex items-center gap-1"
+              >
+                <Bike className="h-4 w-4" /> Rider Panel
+              </Link>
+            )}
           </nav>
 
           <div className="hidden md:flex items-center flex-1 max-w-sm">
@@ -65,6 +73,11 @@ export function Header() {
             {user?.role === 'ADMIN' && (
               <Link href="/admin" className="p-2 text-brand font-medium text-xs flex items-center gap-1 border border-brand/30 rounded px-2.5 py-1" aria-label="Admin Panel">
                 <Shield className="h-4 w-4" /> Admin
+              </Link>
+            )}
+            {user?.role === 'RIDER' && (
+              <Link href="/rider" className="p-2 text-brand font-medium text-xs flex items-center gap-1 border border-brand/30 rounded px-2.5 py-1" aria-label="Rider Panel">
+                <Bike className="h-4 w-4" /> Rider
               </Link>
             )}
             <Link href={user ? '/account' : '/login'} className="p-2 hidden sm:block" aria-label="Account">
@@ -102,6 +115,11 @@ export function Header() {
           {user?.role === 'ADMIN' && (
             <Link href="/admin" className="text-sm font-medium py-1 text-brand font-semibold flex items-center gap-1">
               <Shield className="h-4 w-4" /> Admin Panel
+            </Link>
+          )}
+          {user?.role === 'RIDER' && (
+            <Link href="/rider" className="text-sm font-medium py-1 text-brand font-semibold flex items-center gap-1">
+              <Bike className="h-4 w-4" /> Rider Panel
             </Link>
           )}
           <Link href={user ? '/account' : '/login'} className="text-sm font-medium py-1">
