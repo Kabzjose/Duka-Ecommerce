@@ -26,37 +26,41 @@ Duka lets customers browse products, add them to a cart, and check out with M-Pe
   - `admin` — admin-only dashboard, separate sidebar shell, guarded by role check
 
 ## Project Structure
-src/
-├── app/
-│ ├── (shop)/ # public storefront routes
-│ ├── (auth)/ # login, register, forgot-password
-│ ├── (account)/ # protected customer routes
-│ ├── admin/ # admin dashboard
-│ ├── layout.tsx # root layout, providers
-│ ├── not-found.tsx
-│ └── error.tsx
-├── components/
-│ ├── layout/ # Header, Footer
-│ ├── products/ # ProductCard, ProductGrid, filters, skeletons
-│ ├── cart/
-│ ├── checkout/ # multi-step CheckoutFlow
-│ ├── orders/ # OrderTracker
-│ └── ui/ # Button, Input, Price, Pagination, Toast
-├── context/
-│ ├── AuthContext.tsx
-│ └── CartContext.tsx
-├── hooks/
-│ └── useWishlist.ts # localStorage-based (not backend-persisted)
-└── lib/
-├── api.ts # authenticated fetch wrapper (client-side)
-├── products.ts # server-side product data fetching
-├── orders.ts
-├── admin.ts # admin API helpers
-├── types.ts # types mirroring backend Prisma models
-└── phone.ts (if applicable)
 
+```text
+duka-frontend/
+├── src/
+│   ├── app/
+│   │   ├── (shop)/           # Public storefront routes (Home, Shop, Categories, Deals, Product Details)
+│   │   ├── (auth)/           # Auth pages (Login, Register, Forgot Password)
+│   │   ├── (account)/        # Protected customer account pages (Cart, Checkout, Orders, Wishlist)
+│   │   ├── admin/            # Admin Dashboard (Bookings, Products, Users, Analytics)
+│   │   ├── rider/            # Rider Portal (Assigned Deliveries & Live Status Updates)
+│   │   ├── layout.tsx        # Root application layout & global providers
+│   │   ├── not-found.tsx     # Custom 404 page
+│   │   └── error.tsx         # Global error boundary
+│   ├── components/
+│   │   ├── layout/           # Header, AnnouncementBar, Footer
+│   │   ├── home/             # TrustBar, NewsletterForm, HeroSpotlight
+│   │   ├── products/         # ProductCard, ProductGrid, ProductFilters, AddToCartPanel
+│   │   ├── checkout/         # Multi-step CheckoutFlow (M-Pesa & Card)
+│   │   ├── orders/           # Live OrderTracker status timeline
+│   │   └── ui/               # Button, Input, Select, Price, Pagination, Toast
+│   ├── context/
+│   │   ├── AuthContext.tsx   # Global authentication state & session refresh
+│   │   └── CartContext.tsx   # Shopping cart state & API synchronization
+│   ├── hooks/
+│   │   └── useWishlist.ts    # Client-side wishlist state
+│   └── lib/
+│       ├── api.ts            # Authenticated API client wrapper
+│       ├── products.ts       # Server Component data fetching helper
+│       ├── orders.ts         # Customer order management helper
+│       ├── rider.ts          # Rider delivery management helper
+│       ├── admin.ts          # Admin portal API helper
+│       └── types.ts          # TypeScript interfaces for API models
+└── public/                   # Static assets & icons
+```
 
-## Getting Started
 
 ### Prerequisites
 - Node.js 22+
