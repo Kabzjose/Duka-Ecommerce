@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Duka — Frontend
+
+Customer storefront and admin dashboard for **Duka**, an e-commerce platform with integrated delivery fulfillment, built on top of the Deliver Chap Chap backend API.
+
+## Overview
+
+Duka lets customers browse products, add them to a cart, and check out with M-Pesa or card payment. On successful payment, an order automatically becomes a delivery booking, fulfilled through the connected backend's rider/logistics system. Admins manage bookings, riders, users, and the product catalog through a dedicated `/admin` area.
+
+## Tech Stack
+
+- **Framework**: Next.js (App Router), TypeScript
+- **Styling**: Tailwind CSS, custom design tokens (warm off-white background, deep green brand accent, monospace pricing)
+- **State**: React Context (`AuthContext`, `CartContext`) — no external state library
+- **Icons**: lucide-react
+- **Fonts**: Inter, Inter Tight, IBM Plex Mono (via `next/font/google`)
+
+## Architecture Notes
+
+- **Real backend integration from day one** — no mocked data; all auth, products, cart, checkout, and orders are wired directly to the Express API.
+- **Server Components by default** — product listing, category, and detail pages fetch data server-side for fast initial loads and SEO. Interactive pieces (cart, forms, auth-aware UI) are explicit Client Components (`'use client'`).
+- **Auth**: access tokens live in memory only (React state, never `localStorage`); refresh tokens are httpOnly cookies handled entirely by the backend. A silent `/auth/refresh` call on load restores sessions across page reloads.
+- **Route groups**:
+  - `(shop)` — public storefront pages, shares the main header/footer layout
+  - `(auth)` — login/register/forgot-password, minimal layout
+  - `(account)` — logged-in customer pages (cart, checkout, orders, wishlist, account settings); guarded by a client-side auth check
+  - `admin` — admin-only dashboard, separate sidebar shell, guarded by role check
+
+## Project Structure
+src/
+├── app/
+│ ├── (shop)/ # public storefront routes
+│ ├── (auth)/ # login, register, forgot-password
+│ ├── (account)/ # protected customer routes
+│ ├── admin/ # admin dashboard
+│ ├── layout.tsx # root layout, providers
+│ ├── not-found.tsx
+│ └── error.tsx
+├── components/
+│ ├── layout/ # Header, Footer
+│ ├── products/ # ProductCard, ProductGrid, filters, skeletons
+│ ├── cart/
+│ ├── checkout/ # multi-step CheckoutFlow
+│ ├── orders/ # OrderTracker
+│ └── ui/ # Button, Input, Price, Pagination, Toast
+├── context/
+│ ├── AuthContext.tsx
+│ └── CartContext.tsx
+├── hooks/
+│ └── useWishlist.ts # localStorage-based (not backend-persisted)
+└── lib/
+├── api.ts # authenticated fetch wrapper (client-side)
+├── products.ts # server-side product data fetching
+├── orders.ts
+├── admin.ts # admin API helpers
+├── types.ts # types mirroring backend Prisma models
+└── phone.ts (if applicable)
+
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+- Node.js 22+
+- pnpm 9+
+- The backend API running locally or deployed (see backend README)
+
+### Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
+cp .env.local.example .env.local   # or create manually, see below
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Runs at `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:4000/api
+```
 
-## Learn More
+Point this at your deployed backend URL in production.
 
-To learn more about Next.js, take a look at the following resources:
+### Scripts
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm dev      # start dev server
+pnpm build    # production build
+pnpm start    # run production build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Key Flows
 
-## Deploy on Vercel
+### Checkout
+Multi-step flow (Shipping → Delivery → Payment → Review) in `components/checkout/CheckoutFlow.tsx`:
+- **M-Pesa**: initiates STK Push, polls order status until payment confirms (webhook-driven on the backend), then redirects to order confirmation
+- **Card (Paystack)**: redirects to Paystack's hosted checkout, returns to `/payment/callback`, which polls for payment confirmation before redirecting to order confirmation
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Order tracking
+`/orders/:id` fetches both the order and its linked delivery booking, polling every 10s to reflect live delivery status (`Preparing → Rider Assigned → Picked Up → Out for Delivery → Delivered`).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Admin dashboard (`/admin`)
+- **Overview** — booking/revenue stats
+- **Bookings** — filter by status, assign riders, progress delivery status
+- **Users & Riders** — create rider/admin accounts, deactivate users
+- **Products** — create products, adjust stock, deactivate listings
+
+## Design System
+
+- Colors: warm off-white background (`#FAF9F5`), near-black text, deep bottle green brand accent (`#1B5E43`), amber for discount/rating accents
+- Typography: `Inter Tight` for headings, `Inter` for body, `IBM Plex Mono` for all price displays (consistent tabular pricing across the app)
+- Minimal shadows, 1px hairline borders for card separation, 4–8px border radius (not heavily rounded)
+
+## Known Limitations / Not Yet Implemented
+
+- **Wishlist and saved addresses are localStorage-only** — not persisted to the backend, will not sync across devices
+- **No discount/deals pricing** — `/deals` currently shows the full catalog; backend doesn't yet model sale prices
+- **Profile editing is disabled** — no backend endpoint yet for updating user details
+- **No form-level validation library** — client-side validation is manual per form; should mirror backend Zod schemas exactly (see backend's `src/modules/*/. schema.ts` and `src/lib/phone.ts` for exact accepted formats)
+- **Live GPS map view not built** — the backend's Socket.io tracking channel exists, but the frontend doesn't yet render a live map; `/orders/:id` uses polling instead
+
+## Deployment
+
+Deployed on [Vercel] (or your chosen host). Ensure `NEXT_PUBLIC_API_URL` points to the production backend, and that the backend's CORS configuration explicitly allows this frontend's deployed origin (see backend's `app.ts`).
